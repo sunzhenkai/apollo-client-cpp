@@ -6,18 +6,29 @@
 #ifndef NGINX_APOLLO_H
 #define NGINX_APOLLO_H
 
-#endif //NGINX_APOLLO_H
+#endif // NGINX_APOLLO_H
 #define TOKEN_PATTERN "Authorization:%s"
 
-#define LATESTREKEASE_URL "http://%s/openapi/v1/envs/%s/apps/%s/clusters/%s/namespaces/%s/releases/latest"
+#define LATESTREKEASE_URL                                                      \
+  "http://%s/openapi/v1/envs/%s/apps/%s/clusters/%s/namespaces/%s/releases/"   \
+  "latest"
 #define CLUSTERENV_URL "http://%s/openapi/v1/apps/%s/envclusters"
 
-
-
-typedef struct{
-    String config_server_url;
-    String token;
+typedef struct {
+  String config_server_url;
+  String token;
 } ApolloConf;
+typedef struct {
+  String env;
+  String *clusters;
+} envcluster;
+typedef struct {
+  size_t len;
+  envcluster *clusters;
+} envclusters;
+
+extern "C" {
+
 /**
  * 获取apollo配置
  * properties输出结果是：
@@ -40,15 +51,9 @@ typedef struct{
  * @param ip 应用部署的机器ip
  * @return 字符串结果，其他逻辑自行处理
  */
-char* getApolloConfig(ApolloConf apolloConf,String envName,String appId,String clusterName,String namespaceName);
-typedef struct{
-    String env;
-    String* clusters;
-} envcluster;
-typedef struct{
-    size_t len;
-    envcluster* clusters;
-} envclusters;
+char *getApolloConfig(ApolloConf apolloConf, String envName, String appId,
+                      String clusterName, String namespaceName);
+
 /**
  * 获取App的环境，集群信息
  * [
@@ -79,8 +84,7 @@ typedef struct{
  * @param envclusters 集群环境信息，返回引用
  * @return
  */
-void getApolloClusterEnv(ApolloConf apolloConf,String appId,envclusters* ec);
-
+void getApolloClusterEnv(ApolloConf apolloConf, String appId, envclusters *ec);
 
 /**
  * 获取properties，可以获取所有类型 yaml和properties其实是在content这个key下面
@@ -91,7 +95,9 @@ void getApolloClusterEnv(ApolloConf apolloConf,String appId,envclusters* ec);
  * @param namespaceName
  * @return
  */
-void getProperties(ApolloConf apolloConf,String envName,String appId,String clusterName,String namespaceName,Properties* properties);
+void getProperties(ApolloConf apolloConf, String envName, String appId,
+                   String clusterName, String namespaceName,
+                   Properties *properties);
 /**
  * 获取yaml
  * @param apolloConf
@@ -101,7 +107,6 @@ void getProperties(ApolloConf apolloConf,String envName,String appId,String clus
  * @param namespaceName
  * @return
  */
-void getYamlOrJson(ApolloConf apolloConf,String envName,String appId,String clusterName,String namespaceName,String yamlStr);
-
-
-
+void getYamlOrJson(ApolloConf apolloConf, String envName, String appId,
+                   String clusterName, String namespaceName, String yamlStr);
+}

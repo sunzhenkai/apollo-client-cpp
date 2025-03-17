@@ -28,6 +28,7 @@ typedef struct {
 } notification;
 // 定义回调函数，用于存在更新后的数据
 
+extern "C" {
 /**
  * 获取当前环境的所有配置，返回字符串
  * @param apolloEnv 环境信息
@@ -76,3 +77,4 @@ void submitNotifications(apollo_env apolloEnv, notification notifications,
 int submitNotificationsAsync(apollo_env apolloEnv, notification notifications,
                              int *flag,
                              void (*callback)(Properties *old, Properties *to));
+}
