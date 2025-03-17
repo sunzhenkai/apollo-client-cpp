@@ -7,12 +7,19 @@ Apollo client for cpp (unofficial).
 - json-c
 - curl
 
-# Build
+# Build with vcpkg
 
-## Build with vcpkg
+## Compile
 
 ```shell
 make release
+```
+
+# Usage
+
+```cmake
+find_package(apollo-client CONFIG REQUIRED)
+target_link_libraries(main apollo-client::apollo-client)
 ```
 
 # Appendices
