@@ -3,20 +3,25 @@ project(apollo-client)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+option(BUILD_TESTING "build testing" OFF)
 
-include(GNUInstallDirs) # CMAKE_INSTALL_INCLUDEDIR / CMAKE_INSTALL_LIBDIR / ...
-
-find_package(CURL REQUIRED)
-find_package(json-c CONFIG REQUIRED)
+find_package(httplib CONFIG REQUIRED)
+set(THIRD_LIBRARIES httplib::httplib)
 
 include_directories(include)
-set(project_sources)
-aux_source_directory(src project_sources)
-message(STATUS "project sources: ${project_sources}")
+aux_source_directory(src SRCS)
 
-add_library(${PROJECT_NAME} ${project_sources})
-target_link_libraries(${PROJECT_NAME} CURL::libcurl json-c::json-c)
+message(STATUS "SRCS=${SRCS}")
 
+add_library(${PROJECT_NAME} ${SRCS})
+target_link_libraries(${PROJECT_NAME} ${THIRD_LIBRARIES})
+
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()
+
+# install
+include(GNUInstallDirs) # CMAKE_INSTALL_INCLUDEDIR / CMAKE_INSTALL_LIBDIR / ...
 install(
   TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}

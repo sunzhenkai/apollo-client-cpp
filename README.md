@@ -4,8 +4,16 @@ Apollo client for cpp (unofficial).
 
 # Dependencies
 
-- json-c
-- curl
+## Libraries
+
+- cpp-libhttp
+
+## Programs
+
+- vcpkg
+- ninja
+- cmake
+- pkg-config
 
 # Build with vcpkg
 

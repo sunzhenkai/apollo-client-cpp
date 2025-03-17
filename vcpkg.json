@@ -1,9 +1,9 @@
 {
-  "name": "apollo-client-cpp",
+  "name": "apollo-client",
   "version": "0.0.1",
   "dependencies": [
-    "curl",
-    "json-c",
+    "cpp-httplib",
+    "gtest",
     {
       "name": "vcpkg-cmake",
       "host": true
