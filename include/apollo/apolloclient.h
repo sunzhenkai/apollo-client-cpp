@@ -5,7 +5,6 @@
 #ifndef NGINX_APOLLOCLIENT_H
 #define NGINX_APOLLOCLIENT_H
 
-#endif // NGINX_APOLLOCLIENT_H
 /**
  * 不带缓存配置信息url地址
  */
@@ -76,3 +75,5 @@ void submitNotifications(apollo_env apolloEnv, notification notifications,
 int submitNotificationsAsync(apollo_env apolloEnv, notification notifications,
                              int *flag,
                              void (*callback)(Properties *old, Properties *to));
+
+#endif // NGINX_APOLLOCLIENT_H
