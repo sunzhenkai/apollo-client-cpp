@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 namespace apollo {
 const std::string HMAC_SHA1_SIGN_DELIMITER;
@@ -86,6 +87,19 @@ template <typename T> std::string ToString(const std::vector<T> &v) {
     ss << v[i];
   }
   ss << "]";
+  return ss.str();
+}
+
+template <typename K, typename V>
+std::string ToString(const std::unordered_map<K, V> &m) {
+  std::stringstream ss;
+  ss << "{";
+  for (auto it = m.begin(); it != m.end(); ++it) {
+    if (it != m.begin())
+      ss << ",";
+    ss << "\"" << it->first << "\":" << "\"" << it->second << "\"";
+  }
+  ss << "}";
   return ss.str();
 }
 } // namespace apollo

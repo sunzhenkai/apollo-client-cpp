@@ -16,15 +16,6 @@ TEST(Http, Get) {
   spdlog::info("result_size: {}", r.data.size());
 }
 
-TEST(Client, Get) {
-  apollo::ApolloClient client(options);
-  auto r = client.GetProperties("application");
-  spdlog::info("result_size: {}", r.data.size());
-
-  r = client.GetProperties("Public");
-  spdlog::info("result_size: {}", r.data.size());
-}
-
 TEST(Http, Notify) {
   apollo::Notifications notf;
   notf.data["app1"] = 100;

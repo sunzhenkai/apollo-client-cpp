@@ -13,6 +13,8 @@ namespace apollo {
 struct Properties {
   std::unordered_map<std::string, std::string> data;
   long timestamp_ms;
+
+  std::string GetDataStr();
 };
 
 struct ApolloClientOptions {
