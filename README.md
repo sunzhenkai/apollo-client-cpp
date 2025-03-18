@@ -1,6 +1,6 @@
-# Apollo Clien (C++)
+# Apollo Client (C++)
 
-Apollo client for cpp (unofficial).
+Apollo client for c++ (unofficial).
 
 # Dependencies
 
