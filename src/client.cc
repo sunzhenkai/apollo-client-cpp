@@ -30,6 +30,8 @@ Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
       if (!need_featch) {
         result = it->second;
       }
+    } else {
+      need_featch = true;
     }
   }
   if (need_featch) {
