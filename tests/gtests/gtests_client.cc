@@ -14,6 +14,15 @@ apollo::ApolloClientOptions client_options{
     .cluster = "default",
     .secret_key = "4a46a5e6e6994c1599ddca631f09ecb3"};
 
+TEST(Client, Get) {
+  apollo::ApolloClient client(client_options);
+  auto r = client.GetProperties("application");
+  spdlog::info("result_size: {}", r.data.size());
+
+  r = client.GetProperties("Public");
+  spdlog::info("result_size: {}", r.data.size());
+}
+
 TEST(Client, Notify) {
   apollo::ApolloClient client(client_options);
   client.Subscribe({{"application", "Public"}},
