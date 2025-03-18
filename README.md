@@ -57,3 +57,7 @@ client.Subscribe({{"application", "Public"}},
 ```
 
 # Appendices
+
+## vcpkg registry
+
+If you are looking for a vcpkg registry to integration this library, checking this one [vcpkg-base](https://github.com/sunzhenkai/vcpkg-base).
