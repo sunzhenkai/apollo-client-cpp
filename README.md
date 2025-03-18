@@ -36,7 +36,7 @@ target_link_libraries(main apollo-client::apollo-client)
 #include "apollo/api.h"
 
 // Init
-apollo::apolloclientoptions options{
+apollo::ApolloClientOptions options{
     .address = "81.68.181.139:8080",
     .app_id = "000111",
     .cluster = "default",
