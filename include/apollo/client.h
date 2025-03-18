@@ -7,6 +7,7 @@
 #include <functional>
 #include <shared_mutex>
 #include <string>
+#include <unordered_map>
 // self
 #include "apollo/http.h"
 #include "apollo/model.h"
@@ -15,7 +16,8 @@ namespace apollo {
 /**
  * @brief notify function for subscribe
  * */
-using NotifyFunction = std::function<void(Properties &&properties)>;
+using NotifyFunction =
+    std::function<void(const std::string &nmspace, Properties &&properties)>;
 
 class ApolloClient {
 public:
@@ -58,5 +60,7 @@ private:
   ApolloHttpClient client_;
   std::shared_mutex subscribe_mtx_;
   std::vector<Meta> subscribes{};
+  std::shared_mutex poroperties_mutex_;
+  std::unordered_map<std::string, Properties> properties_;
 };
 } // namespace apollo

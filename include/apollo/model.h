@@ -10,7 +10,11 @@
 #include <vector>
 
 namespace apollo {
-using Properties = std::unordered_map<std::string, std::string>;
+
+struct Properties {
+  std::unordered_map<std::string, std::string> data;
+  long timestamp_ms;
+}
 
 struct ApolloClientOptions {
   std::string app_id;
@@ -29,7 +33,7 @@ struct SubscribeMeta {
 struct Notifications {
   std::unordered_map<std::string, long> data;
 
-  std::string GetQueryString();
+  std::string GetQueryString() const;
 };
 
 } // namespace apollo

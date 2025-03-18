@@ -1,4 +1,6 @@
+#include <exception>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 // 3rd
@@ -15,9 +17,13 @@ namespace apollo {
 const std::string HMAC_SHA1_SIGN_DELIMITE = "\n";
 const char *KEY_CONFIGURATION = "configurations";
 const char *URL_NOTIFICATION = "/notifications/v2";
+const char *KEY_NAMESPACE = "namespaceName";
+const char *KEY_NOTIFICATION_ID = "notificationId";
 
 ApolloHttpClient::ApolloHttpClient(const ApolloClientOptions &options)
-    : client_(options.address), options_(options) {}
+    : client_(options.address), options_(options) {
+  client_.set_read_timeout(80, 0); // 80 seconds, for long pull request
+}
 
 httplib::Headers
 ApolloHttpClient::GetAuthHeaders(const std::string &path_with_query) {
@@ -41,7 +47,6 @@ Properties ApolloHttpClient::GetProperties(const std::string &nmspace) {
         fmt::format("get properties from apollo failed. [url={}, status={}]",
                     url, rsp ? rsp->status : -1));
   }
-  spdlog::info("url:{}, status:{}, body:{}", url, rsp->status, rsp->body);
   // parse json string
   rapidjson::Document doc;
   if (doc.Parse(rsp->body.c_str()).HasParseError()) {
@@ -54,9 +59,10 @@ Properties ApolloHttpClient::GetProperties(const std::string &nmspace) {
   if (config_it != doc.MemberEnd()) {
     auto cobj = config_it->value.GetObject();
     for (auto it = cobj.MemberBegin(); it != cobj.MemberEnd(); ++it) {
-      res[it->name.GetString()] = it->value.GetString();
+      res.data[it->name.GetString()] = it->value.GetString();
     }
   }
+  res.timestamp_ms = CurrentMilliseconds();
 
   return res;
 }
@@ -65,11 +71,34 @@ Notifications ApolloHttpClient::GetNotifications(const Notifications &meta) {
   Notifications notf;
   httplib::Params params{{"appId", options_.app_id},
                          {"cluster", options_.cluster},
-                         {"notifications", ""}};
+                         {"notifications", meta.GetQueryString()}};
+  auto url = httplib::append_query_params(URL_NOTIFICATION, params);
+  auto rsp = client_.Get(url, GetAuthHeaders(url));
+  // ignore 304 or other error
+  // status == 200 means data has changed
+  if (rsp->status == 200) {
+    rapidjson::Document doc;
+    auto err = [&]() {
+      return std::runtime_error(
+          fmt::format("parse notifivations body failed. [url={}, body={}]", url,
+                      rsp->body));
+    };
+    if (doc.Parse(rsp->body.c_str()).HasParseError() || !doc.IsArray()) {
+      throw err();
+    }
+    for (auto &item : doc.GetArray()) {
+      auto obj = item.GetObject();
+      auto nmspace = obj.FindMember(KEY_NAMESPACE);
+      auto notfid = obj.FindMember(KEY_NOTIFICATION_ID);
+      if (nmspace != obj.MemberEnd() && notfid != obj.MemberEnd()) {
+        notf.data[nmspace->value.GetString()] = notfid->value.GetInt();
+      }
+    }
+  }
   return notf;
 }
 
-std::string Notifications::GetQueryString() {
+std::string Notifications::GetQueryString() const {
   bool is_first = true;
   std::stringstream ss;
   ss << "[";
@@ -79,9 +108,9 @@ std::string Notifications::GetQueryString() {
     } else {
       ss << ",";
     }
-    ss << "{\"namespaceName\": \"" << k << "\", \"notificationId\": " << v
-       << "}";
+    ss << "{\"namespaceName\":\"" << k << "\",\"notificationId\":" << v << "}";
   }
   ss << "]";
+  return ss.str();
 }
 } // namespace apollo
