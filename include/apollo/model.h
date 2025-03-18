@@ -6,7 +6,6 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace apollo {
@@ -14,7 +13,7 @@ namespace apollo {
 struct Properties {
   std::unordered_map<std::string, std::string> data;
   long timestamp_ms;
-}
+};
 
 struct ApolloClientOptions {
   std::string app_id;

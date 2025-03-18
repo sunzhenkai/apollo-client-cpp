@@ -13,16 +13,16 @@ apollo::ApolloClientOptions options{.address = "81.68.181.139:8080",
 TEST(Http, Get) {
   apollo::ApolloHttpClient client(options);
   auto r = client.GetProperties("application");
-  spdlog::info("result_size: {}", r.size());
+  spdlog::info("result_size: {}", r.data.size());
 }
 
 TEST(Client, Get) {
   apollo::ApolloClient client(options);
   auto r = client.GetProperties("application");
-  spdlog::info("result_size: {}", r.size());
+  spdlog::info("result_size: {}", r.data.size());
 
   r = client.GetProperties("Public");
-  spdlog::info("result_size: {}", r.size());
+  spdlog::info("result_size: {}", r.data.size());
 }
 
 TEST(Http, Notify) {

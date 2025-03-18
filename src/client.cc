@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <mutex>
+#include <shared_mutex>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <thread>
@@ -5,13 +8,32 @@
 // self
 #include "apollo/client.h"
 #include "apollo/model.h"
+#include "apollo/utils.h"
 
 namespace apollo {
 ApolloClient::ApolloClient(const ApolloClientOptions &options)
     : options_(options), client_(options) {}
 
 Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
-  return client_.GetProperties(nmspace);
+  Properties result;
+  bool need_featch = ttl_s <= 0;
+  if (!need_featch) {
+    std::shared_lock lock(poroperties_mutex_);
+    auto it = properties_.find(nmspace);
+    need_featch =
+        (CurrentMilliseconds() - it->second.timestamp_ms) > ttl_s * 1000;
+    if (!need_featch) {
+      result = it->second;
+    }
+  }
+  if (need_featch) {
+    result = client_.GetProperties(nmspace);
+    {
+      std::unique_lock lock(poroperties_mutex_);
+      properties_[nmspace] = result;
+    }
+  }
+  return result;
 }
 
 int ApolloClient::Subscribe(SubscribeMeta &&meta,
@@ -34,7 +56,7 @@ int ApolloClient::Subscribe(SubscribeMeta &&meta,
       for (auto &[k, v] : r.data) {
         // update Notifications id of namespace
         noft.data[k] = v;
-        callback(k, client_.GetProperties(k));
+        callback(k, GetProperties(k, 0));
       }
     }
   });
