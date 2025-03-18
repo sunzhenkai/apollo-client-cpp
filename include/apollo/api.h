@@ -1,4 +1,5 @@
+#pragma once
+#include "apollo/client.h"
+#include "apollo/model.h"
 
-namespace apollo {
-class ApolloClient {};
-} // namespace apollo
+namespace apollo {} // namespace apollo
