@@ -3,10 +3,12 @@
  * @brief apollo client
  * @author zhenkai.sun
  * */
+#pragma once
 #include <functional>
+#include <shared_mutex>
 #include <string>
-#include <unordered_map>
 // self
+#include "apollo/http.h"
 #include "apollo/model.h"
 
 namespace apollo {
@@ -17,14 +19,19 @@ using NotifyFunction = std::function<void(Properties &&properties)>;
 
 class ApolloClient {
 public:
-  ApolloClient(ApolloClientOptions &&options); //< Construct
-  ~ApolloClient();                             //< Destructor
+  struct Meta {
+    SubscribeMeta meta;
+    bool is_running{true};
+    std::thread td;
+  };
+  ApolloClient(const ApolloClientOptions &options); //< Construct
+  ~ApolloClient();                                  //< Destructor
 
   /**
    * @brief Get all properties of the namespace (with cache)
    * @param [in] nmspace namespace
-   * @param [in] ttl_s maximum allowable delay time in seconds, the value 0
-   * means query
+   * @param [in] ttl_s WANR: NOT IMPLEMENT FOR NOW. maximum allowable delay
+   * time in seconds, the value 0 means query
    * @return the properties of the namespace
    * immediately
    */
@@ -34,11 +41,22 @@ public:
    * @brief subscribe a namespace, and callback function will be called when
    * namespace's properties changed
    * @param [in] subscribe meta data
-   * @param [in] callback function. function definaltion see @ref NotifyFunction
+   * @param [in] callback function. function definaltion see @ref
+   * NotifyFunction
+   * @return subscribe id
    */
-  void Subscribe(SubscribeMeta &&meta, const NotifyFunction &callback);
+  int Subscribe(SubscribeMeta &&meta, const NotifyFunction &callback);
+
+  /**
+   * @brief unscbscribe
+   * @param subscribe_id subscribe id
+   */
+  void Unsubscribe(int subscribe_id);
 
 private:
-  ApolloClientOptions options;
+  ApolloClientOptions options_;
+  ApolloHttpClient client_;
+  std::shared_mutex subscribe_mtx_;
+  std::vector<Meta> subscribes{};
 };
 } // namespace apollo

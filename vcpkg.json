@@ -4,6 +4,10 @@
   "dependencies": [
     "cpp-httplib",
     "gtest",
+    "fmt",
+    "openssl",
+    "rapidjson",
+    "spdlog",
     {
       "name": "vcpkg-cmake",
       "host": true

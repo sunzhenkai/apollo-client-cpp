@@ -1,3 +1,4 @@
+#pragma once
 #include "apollo/client.h"
 #include "apollo/model.h"
 

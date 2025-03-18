@@ -1,12 +1,26 @@
 cmake_minimum_required(VERSION 3.14)
 project(apollo-client)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(BUILD_TESTING "build testing" OFF)
 
 find_package(httplib CONFIG REQUIRED)
-set(THIRD_LIBRARIES httplib::httplib)
+find_package(fmt CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(RapidJSON CONFIG REQUIRED)
+
+set(THIRD_LIBRARIES
+    httplib::httplib
+    fmt::fmt
+    spdlog::spdlog
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    RapidJSON
+    rapidjson
+    pthread)
 
 include_directories(include)
 aux_source_directory(src SRCS)

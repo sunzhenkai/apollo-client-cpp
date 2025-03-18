@@ -3,6 +3,7 @@
  * @brief the defination of models
  * @author zhenkai.sun
  */
+#pragma once
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -13,22 +14,22 @@ using Properties = std::unordered_map<std::string, std::string>;
 
 struct ApolloClientOptions {
   std::string app_id;
-  std::string address; // apollo config server address with port
+  std::string address; //> apollo config server address with port
   std::string cluster;
-};
-
-struct ConfigMeta {
-  std::string app_id;
-  std::string cluster{"default"};
-  std::string nmspace; // namespace, namespace is a keyword in c++
-  std::vector<std::string> keys;
+  std::string secret_key; //> app level
 };
 
 /**
  * @brief Subscribe meta data.
  */
 struct SubscribeMeta {
-  std::string nmspace;                  ///< namespace
-  std::unordered_set<std::string> keys; ///< keys should be notified
+  std::vector<std::string> nmspaces; ///< namespace
 };
+
+struct Notifications {
+  std::unordered_map<std::string, long> data;
+
+  std::string GetQueryString();
+};
+
 } // namespace apollo
