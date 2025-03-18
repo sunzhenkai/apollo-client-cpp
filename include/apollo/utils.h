@@ -8,6 +8,7 @@
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -67,5 +68,17 @@ std::string HmacSha1Sign(const S1 &raw, const S2 &key) {
   BIO_free_all(bio);
 
   return result;
+}
+
+template <typename T> std::string ToString(const std::vector<T> &v) {
+  std::stringstream ss;
+  ss << "[";
+  for (int i = 0; i < v.size(); ++i) {
+    if (i != 0)
+      ss << ",";
+    ss << v[i];
+  }
+  ss << "]";
+  return ss.str();
 }
 } // namespace apollo

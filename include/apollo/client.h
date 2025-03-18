@@ -40,6 +40,13 @@ public:
   Properties GetProperties(const std::string &nmspace, int ttl_s = 60);
 
   /**
+   * @brief Get all properties without cache
+   * @param [in] nmspace namespace
+   * @return the properties of the namespace
+   */
+  Properties GetPropertiesDirectly(const std::string &nmspace);
+
+  /**
    * @brief subscribe a namespace, and callback function will be called when
    * namespace's properties changed
    * @param [in] subscribe meta data
@@ -58,9 +65,9 @@ public:
 private:
   ApolloClientOptions options_;
   ApolloHttpClient client_;
-  std::shared_mutex subscribe_mtx_;
+  std::shared_mutex subscribe_mtx_{};
   std::vector<Meta> subscribes{};
-  std::shared_mutex poroperties_mutex_;
-  std::unordered_map<std::string, Properties> properties_;
+  std::shared_mutex properties_mutex_{};
+  std::unordered_map<std::string, Properties> properties_{};
 };
 } // namespace apollo
