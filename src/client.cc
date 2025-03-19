@@ -21,12 +21,28 @@ Properties ApolloClient::GetPropertiesDirectly(const std::string &nmspace) {
 Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
   Properties result;
   bool need_featch = ttl_s <= 0;
+  // no need featch if namespace is subscribed
+  auto is_nmspace_subscribed = [&](const std::string &nmspace) {
+    for (const auto &i : subscribes) {
+      if (!i.is_running)
+        continue;
+      for (const auto &j : i.meta.nmspaces) {
+        if (j == nmspace) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   if (!need_featch) {
     std::shared_lock lock(properties_mutex_);
     auto it = properties_.find(nmspace);
     if (it != properties_.end()) {
       auto ts_ms = CurrentMilliseconds();
-      need_featch = ((ts_ms - it->second.timestamp_ms) > ttl_s * 1000);
+      auto passed_s = (ts_ms - it->second.timestamp_ms) / 1000;
+      // need featch if not subscribed && beyond ttl
+      need_featch = !is_nmspace_subscribed(nmspace) && (passed_s > ttl_s);
       if (!need_featch) {
         result = it->second;
       }
@@ -73,6 +89,17 @@ int ApolloClient::Subscribe(SubscribeMeta &&meta,
     }
   });
   return sid;
+}
+
+Properties ApolloClient::GetPropertiesFromCache(const std::string &nmspace) {
+  {
+    std::shared_lock lock(properties_mutex_);
+    auto it = properties_.find(nmspace);
+    if (it != properties_.end())
+      return it->second;
+  }
+  // no local cache
+  return GetProperties(nmspace);
 }
 
 void ApolloClient::Unsubscribe(int subscribe_id) {
