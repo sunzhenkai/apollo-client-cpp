@@ -39,6 +39,8 @@ public:
    */
   Properties GetProperties(const std::string &nmspace, int ttl_s = 60);
 
+  Properties GetPropertiesFromCache(const std::string &nmspace);
+
   /**
    * @brief Get all properties without cache
    * @param [in] nmspace namespace

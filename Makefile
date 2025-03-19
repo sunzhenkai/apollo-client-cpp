@@ -1,16 +1,17 @@
-.PHONY: release
+.PHONY: release build test
 
 release:
 	@cmake --preset=release
 	@cmake --build release
 
-test:
+build:
 	@cmake --preset=test
 	@cmake --build build
-	#@./build/tests/gtest_main
 
-run_test:
+test:
 	# for example: make run_test cases='ToString.*'
 	# run all test: make run_test cases='*'
 	@./build/tests/gtest_main --gtest_filter=$(cases)
 
+test-all:
+	@./build/tests/gtest_main --gtest_filter='*'

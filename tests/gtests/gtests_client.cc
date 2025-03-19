@@ -21,6 +21,7 @@ TEST(Client, Get) {
 
   r = client.GetProperties("Public");
   spdlog::info("result_size: {}", r.data.size());
+  ASSERT_TRUE(r.data.size() > 0);
 }
 
 TEST(Client, Notify) {
@@ -30,4 +31,10 @@ TEST(Client, Notify) {
                      spdlog::info("namespace Properties updated: {}", nms);
                    });
   std::this_thread::sleep_for(30s);
+}
+
+TEST(Client, GetFromCache) {
+  apollo::ApolloClient client(client_options);
+  auto r = client.GetPropertiesFromCache("application");
+  ASSERT_TRUE(r.data.size() > 0);
 }
