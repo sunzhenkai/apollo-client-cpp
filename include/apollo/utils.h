@@ -4,14 +4,17 @@
  * @author zhenkai.sun
  */
 #pragma once
-#include <openssl/bio.h>
-#include <openssl/buffer.h>
-#include <openssl/evp.h>
-#include <openssl/hmac.h>
+// sys
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
+// 3rd
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#include <openssl/evp.h>
+#include <openssl/hmac.h>
 
 namespace apollo {
 const std::string HMAC_SHA1_SIGN_DELIMITER;
