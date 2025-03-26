@@ -1,18 +1,20 @@
+#include <spdlog/spdlog.h>
+
+#include <chrono>
+#include <memory>
+#include <thread>
+
 #include "apollo/client.h"
 #include "apollo/http.h"
 #include "apollo/model.h"
 #include "gtest/gtest.h"
-#include <chrono>
-#include <spdlog/spdlog.h>
-#include <thread>
 
 using namespace std::chrono_literals;
 
-apollo::ApolloClientOptions client_options{
-    .app_id = "000111",
-    .address = "81.68.181.139:8080",
-    .cluster = "default",
-    .secret_key = "4a46a5e6e6994c1599ddca631f09ecb3"};
+apollo::ApolloClientOptions client_options{.app_id = "000111",
+                                           .address = "81.68.181.139:8080",
+                                           .cluster = "default",
+                                           .secret_key = "4a46a5e6e6994c1599ddca631f09ecb3"};
 
 TEST(Client, Get) {
   apollo::ApolloClient client(client_options);
@@ -27,12 +29,27 @@ TEST(Client, Get) {
 TEST(Client, Notify) {
   apollo::ApolloClient client(client_options);
   {
-    client.Subscribe({{"application", "Public"}},
-                     [](const std::string &nms, apollo::Properties &&p) {
-                       spdlog::info("namespace Properties updated: {}", nms);
-                     });
+    client.Subscribe({{"application", "Public"}}, [](const std::string &nms, apollo::Properties &&p) {
+      spdlog::info("namespace Properties updated: {}", nms);
+    });
   }
   std::this_thread::sleep_for(30s);
+}
+
+TEST(Client, NotifyV2) {
+  {
+    apollo::ApolloClient client(client_options);
+    client.Subscribe({{"application", "Public"}}, [](const std::string &nms, apollo::Properties &&p) {
+      spdlog::info("namespace Properties updated: {}", nms);
+    });
+  }
+  {
+    std::shared_ptr<apollo::ApolloClient> client;
+    client = std::make_shared<apollo::ApolloClient>(client_options);
+    client->Subscribe({{"application", "Public"}}, [](const std::string &nms, apollo::Properties &&p) {
+      spdlog::info("namespace Properties updated: {}", nms);
+    });
+  }
 }
 
 TEST(Client, GetFromCache) {
