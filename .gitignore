@@ -7,3 +7,4 @@ build
 .cache
 vcpkg-manifest-install.log
 vcpkg_installed
+core.*

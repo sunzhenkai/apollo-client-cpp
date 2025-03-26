@@ -60,10 +60,11 @@ Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
 
 int ApolloClient::Subscribe(SubscribeMeta &&meta, NotifyFunction &&callback) {
   auto sid = subscribes.size();
-  auto nmeta = subscribes.emplace_back(new ApolloClient::Meta{std::move(meta), true});
+  auto nmeta = new ApolloClient::Meta{std::move(meta), true};
+  subscribes.emplace_back(nmeta);
   spdlog::info("[{}] add subscribe. [id={}, namespace={}]", __func__, sid, ToString(nmeta->meta.nmspaces));
   // submit backgroud thread
-  nmeta->td = std::thread([&, cb = std::move(callback)]() {
+  nmeta->td = std::thread([&, cb = std::move(callback), nmeta = nmeta]() {
     // build NotifyFunction
     Notifications noft;
     for (auto &m : nmeta->meta.nmspaces) {
