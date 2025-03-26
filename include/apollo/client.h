@@ -56,7 +56,7 @@ public:
    * NotifyFunction
    * @return subscribe id
    */
-  int Subscribe(SubscribeMeta &&meta, const NotifyFunction &callback);
+  int Subscribe(SubscribeMeta &&meta, NotifyFunction &&callback);
 
   /**
    * @brief unscbscribe
@@ -68,7 +68,7 @@ private:
   ApolloClientOptions options_;
   ApolloHttpClient client_;
   std::shared_mutex subscribe_mtx_{};
-  std::vector<Meta> subscribes{};
+  std::vector<Meta *> subscribes{};
   std::shared_mutex properties_mutex_{};
   std::unordered_map<std::string, Properties> properties_{};
 };

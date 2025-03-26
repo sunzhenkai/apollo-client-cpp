@@ -24,9 +24,9 @@ Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
   // no need featch if namespace is subscribed
   auto is_nmspace_subscribed = [&](const std::string &nmspace) {
     for (const auto &i : subscribes) {
-      if (!i.is_running)
+      if (i == nullptr || !i->is_running)
         continue;
-      for (const auto &j : i.meta.nmspaces) {
+      for (const auto &j : i->meta.nmspaces) {
         if (j == nmspace) {
           return true;
         }
@@ -60,21 +60,20 @@ Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
   return result;
 }
 
-int ApolloClient::Subscribe(SubscribeMeta &&meta,
-                            const NotifyFunction &callback) {
+int ApolloClient::Subscribe(SubscribeMeta &&meta, NotifyFunction &&callback) {
   auto sid = subscribes.size();
-  auto &nmeta =
-      subscribes.emplace_back(ApolloClient::Meta{std::move(meta), true});
+  auto nmeta =
+      subscribes.emplace_back(new ApolloClient::Meta{std::move(meta), true});
   spdlog::info("[{}] add subscribe. [id={}, namespace={}]", __func__, sid,
-               ToString(nmeta.meta.nmspaces));
+               ToString(nmeta->meta.nmspaces));
   // submit backgroud thread
-  nmeta.td = std::thread([&]() {
+  nmeta->td = std::thread([&, callback = std::move(callback)]() {
     // build NotifyFunction
     Notifications noft;
-    for (auto &m : nmeta.meta.nmspaces) {
+    for (auto &m : nmeta->meta.nmspaces) {
       noft.data[m] = -1;
     }
-    while (&nmeta.is_running) {
+    while (nmeta->is_running) {
       spdlog::info("[{}] Query notify. [notify={}]", __func__,
                    noft.GetQueryString());
       auto r = client_.GetNotifications(noft);
@@ -108,14 +107,17 @@ void ApolloClient::Unsubscribe(int subscribe_id) {
     return;
   }
   spdlog::info("[{}] Unsubscribe. [id={}, namespaces={}]", __func__,
-               subscribe_id, ToString(subscribes[subscribe_id].meta.nmspaces));
-  subscribes[subscribe_id].is_running = false;
+               subscribe_id, ToString(subscribes[subscribe_id]->meta.nmspaces));
+  subscribes[subscribe_id]->is_running = false;
 }
 
 ApolloClient::~ApolloClient() {
   for (auto i = 0; i < subscribes.size(); ++i)
     Unsubscribe(i);
-  for (auto &s : subscribes)
-    s.td.join();
+  for (auto &s : subscribes) {
+    s->td.join();
+    delete s;
+    s = nullptr;
+  }
 }
 } // namespace apollo
