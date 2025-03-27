@@ -1,10 +1,8 @@
 #include <spdlog/spdlog.h>
 
-#include <algorithm>
 #include <exception>
 #include <mutex>
 #include <shared_mutex>
-#include <stdexcept>
 #include <thread>
 #include <utility>
 // self
@@ -88,6 +86,7 @@ int ApolloClient::Subscribe(SubscribeMeta &&meta, NotifyFunction &&callback) {
       }
     }
   });
+  nmeta->td.detach();
   return sid;
 }
 
