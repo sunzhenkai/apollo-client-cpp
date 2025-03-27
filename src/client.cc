@@ -113,7 +113,9 @@ void ApolloClient::Unsubscribe(int subscribe_id) {
 ApolloClient::~ApolloClient() {
   for (auto i = 0; i < subscribes.size(); ++i) Unsubscribe(i);
   for (auto &s : subscribes) {
-    s->td.join();
+    if (s->td.joinable()) {
+      s->td.join();
+    }
     delete s;
     s = nullptr;
   }
