@@ -86,7 +86,7 @@ int ApolloClient::Subscribe(SubscribeMeta &&meta, NotifyFunction &&callback) {
       }
     }
   });
-  nmeta->td.detach();
+  // nmeta->td.detach();
   return sid;
 }
 
