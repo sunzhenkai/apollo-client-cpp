@@ -19,8 +19,17 @@ Apollo client for c++ (unofficial).
 
 ## Compile
 
+### cmake(>=3.19)+vcpkg
+
 ```shell
 make release
+```
+
+### cmake
+
+```shell
+cmake -DCMAKE_BUILD_TYPE=Release -B release
+cmake --build release -j
 ```
 
 # Find & Link
