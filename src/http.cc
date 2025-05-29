@@ -1,4 +1,3 @@
-#include <exception>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -8,7 +7,6 @@
 #include "fmt/format.h"
 #include "httplib.h"
 #include "rapidjson/document.h"
-#include "spdlog/spdlog.h"
 // self
 #include "apollo/http.h"
 #include "apollo/utils.h"
@@ -20,38 +18,32 @@ const char *URL_NOTIFICATION = "/notifications/v2";
 const char *KEY_NAMESPACE = "namespaceName";
 const char *KEY_NOTIFICATION_ID = "notificationId";
 
-ApolloHttpClient::ApolloHttpClient(const ApolloClientOptions &options)
-    : client_(options.address), options_(options) {
-  client_.set_read_timeout(80, 0); // 80 seconds, for long pull request
+ApolloHttpClient::ApolloHttpClient(const ApolloClientOptions &options) : client_(options.address), options_(options) {
+  client_.set_read_timeout(80, 0);  // 80 seconds, for long pull request
 }
 
-httplib::Headers
-ApolloHttpClient::GetAuthHeaders(const std::string &path_with_query) {
+httplib::Headers ApolloHttpClient::GetAuthHeaders(const std::string &path_with_query) {
   if (options_.secret_key.empty()) {
     return {};
   }
   std::string ts_ms = std::to_string(apollo::CurrentMilliseconds());
-  auto key =
-      fmt::format("{}{}{}", ts_ms, HMAC_SHA1_SIGN_DELIMITE, path_with_query);
+  auto key = fmt::format("{}{}{}", ts_ms, HMAC_SHA1_SIGN_DELIMITE, path_with_query);
   auto sign = HmacSha1Sign(key, options_.secret_key);
   auto token = fmt::format("Apollo {}:{}", options_.app_id, sign);
   return {{"Timestamp", ts_ms}, {"Authorization", token}};
 }
 
 Properties ApolloHttpClient::GetProperties(const std::string &nmspace) {
-  std::string url = fmt::format("/configs/{}/{}/{}", options_.app_id,
-                                options_.cluster, nmspace);
+  std::string url = fmt::format("/configs/{}/{}/{}", options_.app_id, options_.cluster, nmspace);
   auto rsp = client_.Get(url, GetAuthHeaders(url));
   if (rsp == nullptr || rsp->status != 200) {
     throw std::runtime_error(
-        fmt::format("get properties from apollo failed. [url={}, status={}]",
-                    url, rsp ? rsp->status : -1));
+        fmt::format("get properties from apollo failed. [url={}, status={}]", url, rsp ? rsp->status : -1));
   }
   // parse json string
   rapidjson::Document doc;
   if (doc.Parse(rsp->body.c_str()).HasParseError()) {
-    throw std::runtime_error(fmt::format(
-        "parse properties body failed. [url={}, body={}]", url, rsp->body));
+    throw std::runtime_error(fmt::format("parse properties body failed. [url={}, body={}]", url, rsp->body));
   }
 
   Properties res;
@@ -69,9 +61,8 @@ Properties ApolloHttpClient::GetProperties(const std::string &nmspace) {
 
 Notifications ApolloHttpClient::GetNotifications(const Notifications &meta) {
   Notifications notf;
-  httplib::Params params{{"appId", options_.app_id},
-                         {"cluster", options_.cluster},
-                         {"notifications", meta.GetQueryString()}};
+  httplib::Params params{
+      {"appId", options_.app_id}, {"cluster", options_.cluster}, {"notifications", meta.GetQueryString()}};
   auto url = httplib::append_query_params(URL_NOTIFICATION, params);
   auto rsp = client_.Get(url, GetAuthHeaders(url));
   // ignore 304 or other error
@@ -79,9 +70,7 @@ Notifications ApolloHttpClient::GetNotifications(const Notifications &meta) {
   if (rsp->status == 200) {
     rapidjson::Document doc;
     auto err = [&]() {
-      return std::runtime_error(
-          fmt::format("parse notifivations body failed. [url={}, body={}]", url,
-                      rsp->body));
+      return std::runtime_error(fmt::format("parse notifivations body failed. [url={}, body={}]", url, rsp->body));
     };
     if (doc.Parse(rsp->body.c_str()).HasParseError() || !doc.IsArray()) {
       throw err();
@@ -113,4 +102,4 @@ std::string Notifications::GetQueryString() const {
   ss << "]";
   return ss.str();
 }
-} // namespace apollo
+}  // namespace apollo
