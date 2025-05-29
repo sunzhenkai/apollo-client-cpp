@@ -121,6 +121,7 @@ void ApolloClient::Unsubscribe(int subscribe_id) {
   spdlog::info("[{}] Unsubscribe. [id={}, namespaces={}]", __func__, subscribe_id,
                ToString(subscribes[subscribe_id]->meta.nmspaces));
   subscribes[subscribe_id]->is_running = false;
+  client_.Stop();
 }
 
 ApolloClient::~ApolloClient() {

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "apollo/client.h"
 #include "apollo/model.h"
@@ -61,4 +62,5 @@ TEST(Client, LongPulling) {
   client.Subscribe({{"application", "Public"}}, [](const std::string &nms, apollo::Properties &&p) {
     spdlog::info("namespace Properties updated: {}", nms);
   });
+  std::this_thread::sleep_for(1s);
 }

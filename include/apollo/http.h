@@ -32,6 +32,8 @@ class ApolloHttpClient {
 
   Notifications GetNotifications(const Notifications &meta);
 
+  void Stop();
+
  private:
   httplib::Client client_;
   ApolloClientOptions options_;

@@ -69,7 +69,7 @@ Notifications ApolloHttpClient::GetNotifications(const Notifications &meta) {
   auto rsp = client_.Get(url, GetAuthHeaders(url));
   // ignore 304 or other error
   // status == 200 means data has changed
-  if (rsp->status == 200) {
+  if (rsp && rsp->status == 200) {
     rapidjson::Document doc;
     auto err = [&]() {
       return std::runtime_error(fmt::format("parse notifivations body failed. [url={}, body={}]", url, rsp->body));
@@ -88,6 +88,8 @@ Notifications ApolloHttpClient::GetNotifications(const Notifications &meta) {
   }
   return notf;
 }
+
+void ApolloHttpClient::Stop() { client_.stop(); }
 
 std::string Notifications::GetQueryString() const {
   bool is_first = true;
