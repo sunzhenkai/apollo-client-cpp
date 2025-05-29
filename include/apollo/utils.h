@@ -31,56 +31,50 @@ int64_t CurrentMilliseconds();
  * */
 template <typename S1, typename S2>
 std::string HmacSha1Sign(const S1 &raw, const S2 &key) {
-  // 创建 EVP_MAC 对象
-  EVP_MAC *mac = EVP_MAC_fetch(nullptr, "HMAC", nullptr);
-  if (!mac) {
-    throw std::runtime_error("Failed to fetch EVP_MAC for HMAC");
-  }
+  // HMAC-SHA1 计算
+  unsigned char digest[EVP_MAX_MD_SIZE];
+  unsigned int digestLength = 0;
 
-  EVP_MAC_CTX *ctx = EVP_MAC_CTX_new(mac);
-  EVP_MAC_free(mac);
-  if (!ctx) {
-    throw std::runtime_error("Failed to create EVP_MAC_CTX");
+  HMAC_CTX *hmacCtx = HMAC_CTX_new();
+  if (!hmacCtx) {
+    throw std::runtime_error("Failed to create HMAC context");
   }
-
-  // 设置参数
-  OSSL_PARAM params[] = {OSSL_PARAM_utf8_string("digest", const_cast<char *>("SHA1"), 0), OSSL_PARAM_END};
 
   // 初始化 HMAC 上下文
-  if (EVP_MAC_init(ctx, reinterpret_cast<const unsigned char *>(key.data()), key.size(), params) != 1) {
-    EVP_MAC_CTX_free(ctx);
-    throw std::runtime_error("EVP_MAC_init failed");
+  if (HMAC_Init_ex(hmacCtx, key.data(), static_cast<int>(key.length()), EVP_sha1(), nullptr) != 1) {
+    HMAC_CTX_free(hmacCtx);
+    throw std::runtime_error("HMAC initialization failed");
   }
 
   // 更新数据
-  if (EVP_MAC_update(ctx, reinterpret_cast<const unsigned char *>(raw.data()), raw.size()) != 1) {
-    EVP_MAC_CTX_free(ctx);
-    throw std::runtime_error("EVP_MAC_update failed");
+  if (HMAC_Update(hmacCtx, reinterpret_cast<const unsigned char *>(raw.data()), raw.length()) != 1) {
+    HMAC_CTX_free(hmacCtx);
+    throw std::runtime_error("HMAC update failed");
   }
 
-  // 获取摘要
-  unsigned char out[EVP_MAX_MD_SIZE];
-  size_t out_len = 0;
-  if (EVP_MAC_final(ctx, out, &out_len, sizeof(out)) != 1) {
-    EVP_MAC_CTX_free(ctx);
-    throw std::runtime_error("EVP_MAC_final failed");
+  // 获取最终摘要
+  if (HMAC_Final(hmacCtx, digest, &digestLength) != 1) {
+    HMAC_CTX_free(hmacCtx);
+    throw std::runtime_error("HMAC finalization failed");
   }
 
-  EVP_MAC_CTX_free(ctx);
+  HMAC_CTX_free(hmacCtx);
 
   // Base64 编码
   BIO *bio = BIO_new(BIO_f_base64());
   BIO *bmem = BIO_new(BIO_s_mem());
   bio = BIO_push(bio, bmem);
 
+  // 配置 Base64 参数
   BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
-  BIO_write(bio, out, out_len);
+  BIO_write(bio, digest, digestLength);
   BIO_flush(bio);
 
   BUF_MEM *bptr;
   BIO_get_mem_ptr(bio, &bptr);
 
   std::string result(bptr->data, bptr->length);
+
   BIO_free_all(bio);
 
   return result;
