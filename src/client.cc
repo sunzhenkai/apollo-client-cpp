@@ -55,8 +55,8 @@ Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
     }
   }
   if (need_fetch) {
-    result = client_.GetProperties(nmspace);
-    {
+    auto s = client_.GetProperties(result, nmspace);
+    if (s.ok()) {
       std::unique_lock lock(properties_mutex_);
       properties_[nmspace] = result;
     }

@@ -1,18 +1,20 @@
+#include <spdlog/spdlog.h>
+
 #include "apollo/api.h"
 #include "apollo/http.h"
 #include "apollo/model.h"
 #include "gtest/gtest.h"
-#include <spdlog/spdlog.h>
 
 apollo::ApolloClientOptions options{.app_id = "000111",
                                     .address = "81.68.181.139:8080",
                                     .cluster = "default",
-                                    .secret_key =
-                                        "4a46a5e6e6994c1599ddca631f09ecb3"};
+                                    .secret_key = "4a46a5e6e6994c1599ddca631f09ecb3"};
 
 TEST(Http, Get) {
   apollo::ApolloHttpClient client(options);
-  auto r = client.GetProperties("application");
+  apollo::Properties r;
+  auto s = client.GetProperties(r, "application");
+  spdlog::info("status: {}", s.ToString());
   spdlog::info("result_size: {}", r.data.size());
 }
 
