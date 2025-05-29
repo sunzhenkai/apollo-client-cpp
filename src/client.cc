@@ -3,6 +3,8 @@
 #include <exception>
 #include <mutex>
 #include <shared_mutex>
+#include <stdexcept>
+#include <string>
 #include <thread>
 #include <utility>
 // self
@@ -10,10 +12,19 @@
 #include "apollo/model.h"
 #include "apollo/utils.h"
 
+using std::chrono_literals::operator""s;
+
 namespace apollo {
 ApolloClient::ApolloClient(const ApolloClientOptions &options) : options_(options), client_(options) {}
 
-Properties ApolloClient::GetPropertiesDirectly(const std::string &nmspace) { return client_.GetProperties(nmspace); }
+Properties ApolloClient::GetPropertiesDirectly(const std::string &nmspace) {
+  Properties ret;
+  auto s = client_.GetProperties(ret, nmspace);
+  if (!s.ok()) {
+    throw std::runtime_error(s.message().data());
+  }
+  return ret;
+}
 
 Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
   Properties result;
@@ -47,8 +58,8 @@ Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
     }
   }
   if (need_fetch) {
-    result = client_.GetProperties(nmspace);
-    {
+    auto s = client_.GetProperties(result, nmspace);
+    if (s.ok()) {
       std::unique_lock lock(properties_mutex_);
       properties_[nmspace] = result;
     }
@@ -75,6 +86,8 @@ int ApolloClient::Subscribe(SubscribeMeta &&meta, NotifyFunction &&callback) {
         new_notf = client_.GetNotifications(noft);
       } catch (const std::exception &e) {
         spdlog::error("[{}] Fetch subscribe notifications failed. [message={}]", __func__, e.what());
+        std::this_thread::sleep_for(3s);
+        continue;
       }
       if (!new_notf.data.empty()) {
         spdlog::info("[{}] subscribe updated", __func__, new_notf.GetQueryString());
@@ -108,6 +121,7 @@ void ApolloClient::Unsubscribe(int subscribe_id) {
   spdlog::info("[{}] Unsubscribe. [id={}, namespaces={}]", __func__, subscribe_id,
                ToString(subscribes[subscribe_id]->meta.nmspaces));
   subscribes[subscribe_id]->is_running = false;
+  client_.Stop();
 }
 
 ApolloClient::~ApolloClient() {
