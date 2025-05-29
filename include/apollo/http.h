@@ -7,14 +7,16 @@
 // 3rd
 #include "httplib.h"
 // self
-#include "apollo/model.h"
 #include <string>
 #include <unordered_map>
 
+#include "absl/status/status.h"
+#include "apollo/model.h"
+
 namespace apollo {
 class ApolloHttpClient {
-public:
-  ApolloHttpClient(const ApolloClientOptions &options); //< constructor
+ public:
+  ApolloHttpClient(const ApolloClientOptions &options);  //< constructor
 
   /**
    * @brief Get headers for authorization
@@ -26,13 +28,13 @@ public:
    * @brief Get the Properties of the namespace
    * @param [in] nmspace namespace
    */
-  Properties GetProperties(const std::string &nmspace);
+  absl::Status GetProperties(Properties &res, const std::string &nmspace);
 
   Notifications GetNotifications(const Notifications &meta);
 
-private:
+ private:
   httplib::Client client_;
   ApolloClientOptions options_;
   std::unordered_map<std::string, std::string> headers_;
 };
-} // namespace apollo
+}  // namespace apollo

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(BUILD_TESTING "build testing" OFF)
 
+find_package(absl CONFIG REQUIRED)
 find_package(httplib CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -13,6 +14,7 @@ find_package(OpenSSL REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
 
 set(THIRD_LIBRARIES
+    absl::status
     httplib::httplib
     fmt::fmt
     spdlog::spdlog

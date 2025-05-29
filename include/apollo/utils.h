@@ -17,9 +17,9 @@
 #include <openssl/hmac.h>
 
 namespace apollo {
-const std::string HMAC_SHA1_SIGN_DELIMITER;
+extern const char *HMAC_SHA1_SIGN_DELIMITER;
 
-long CurrentMilliseconds();
+int64_t CurrentMilliseconds();
 
 /**
  * @brief Calculate HmacSha1Sign with secret key
@@ -40,15 +40,13 @@ std::string HmacSha1Sign(const S1 &raw, const S2 &key) {
   }
 
   // 初始化 HMAC 上下文
-  if (HMAC_Init_ex(hmacCtx, key.data(), static_cast<int>(key.length()),
-                   EVP_sha1(), nullptr) != 1) {
+  if (HMAC_Init_ex(hmacCtx, key.data(), static_cast<int>(key.length()), EVP_sha1(), nullptr) != 1) {
     HMAC_CTX_free(hmacCtx);
     throw std::runtime_error("HMAC initialization failed");
   }
 
   // 更新数据
-  if (HMAC_Update(hmacCtx, reinterpret_cast<const unsigned char *>(raw.data()),
-                  raw.length()) != 1) {
+  if (HMAC_Update(hmacCtx, reinterpret_cast<const unsigned char *>(raw.data()), raw.length()) != 1) {
     HMAC_CTX_free(hmacCtx);
     throw std::runtime_error("HMAC update failed");
   }
@@ -81,12 +79,12 @@ std::string HmacSha1Sign(const S1 &raw, const S2 &key) {
   return result;
 }
 
-template <typename T> std::string ToString(const std::vector<T> &v) {
+template <typename T>
+std::string ToString(const std::vector<T> &v) {
   std::stringstream ss;
   ss << "[";
   for (int i = 0; i < v.size(); ++i) {
-    if (i != 0)
-      ss << ",";
+    if (i != 0) ss << ",";
     ss << v[i];
   }
   ss << "]";
@@ -98,11 +96,10 @@ std::string ToString(const std::unordered_map<K, V> &m) {
   std::stringstream ss;
   ss << "{";
   for (auto it = m.begin(); it != m.end(); ++it) {
-    if (it != m.begin())
-      ss << ",";
+    if (it != m.begin()) ss << ",";
     ss << "\"" << it->first << "\":" << "\"" << it->second << "\"";
   }
   ss << "}";
   return ss.str();
 }
-} // namespace apollo
+}  // namespace apollo

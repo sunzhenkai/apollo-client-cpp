@@ -3,6 +3,7 @@
 #include <exception>
 #include <mutex>
 #include <shared_mutex>
+#include <stdexcept>
 #include <thread>
 #include <utility>
 // self
@@ -13,7 +14,14 @@
 namespace apollo {
 ApolloClient::ApolloClient(const ApolloClientOptions &options) : options_(options), client_(options) {}
 
-Properties ApolloClient::GetPropertiesDirectly(const std::string &nmspace) { return client_.GetProperties(nmspace); }
+Properties ApolloClient::GetPropertiesDirectly(const std::string &nmspace) {
+  Properties ret;
+  auto s = client_.GetProperties(ret, nmspace);
+  if (!s.ok()) {
+    throw std::runtime_error(s.message().data());
+  }
+  return ret;
+}
 
 Properties ApolloClient::GetProperties(const std::string &nmspace, int ttl_s) {
   Properties result;

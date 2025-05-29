@@ -8,11 +8,13 @@
 #include "httplib.h"
 #include "rapidjson/document.h"
 // self
+#include <absl/status/status.h>
+
 #include "apollo/http.h"
 #include "apollo/utils.h"
 
 namespace apollo {
-const std::string HMAC_SHA1_SIGN_DELIMITE = "\n";
+const char *HMAC_SHA1_SIGN_DELIMITE = "\n";
 const char *KEY_CONFIGURATION = "configurations";
 const char *URL_NOTIFICATION = "/notifications/v2";
 const char *KEY_NAMESPACE = "namespaceName";
@@ -33,20 +35,21 @@ httplib::Headers ApolloHttpClient::GetAuthHeaders(const std::string &path_with_q
   return {{"Timestamp", ts_ms}, {"Authorization", token}};
 }
 
-Properties ApolloHttpClient::GetProperties(const std::string &nmspace) {
+absl::Status ApolloHttpClient::GetProperties(Properties &res, const std::string &nmspace) {
   std::string url = fmt::format("/configs/{}/{}/{}", options_.app_id, options_.cluster, nmspace);
   auto rsp = client_.Get(url, GetAuthHeaders(url));
   if (rsp == nullptr || rsp->status != 200) {
-    throw std::runtime_error(
-        fmt::format("get properties from apollo failed. [url={}, status={}]", url, rsp ? rsp->status : -1));
+    auto msg = fmt::format("get properties from apollo failed. [url={}, status={}]", url, rsp ? rsp->status : -1);
+    return absl::InternalError(msg);
   }
+
   // parse json string
   rapidjson::Document doc;
   if (doc.Parse(rsp->body.c_str()).HasParseError()) {
-    throw std::runtime_error(fmt::format("parse properties body failed. [url={}, body={}]", url, rsp->body));
+    auto msg = fmt::format("parse properties body failed. [url={}, body={}]", url, rsp->body);
+    return absl::InternalError(msg);
   }
 
-  Properties res;
   auto config_it = doc.FindMember(KEY_CONFIGURATION);
   if (config_it != doc.MemberEnd()) {
     auto cobj = config_it->value.GetObject();
@@ -55,8 +58,7 @@ Properties ApolloHttpClient::GetProperties(const std::string &nmspace) {
     }
   }
   res.timestamp_ms = CurrentMilliseconds();
-
-  return res;
+  return absl::OkStatus();
 }
 
 Notifications ApolloHttpClient::GetNotifications(const Notifications &meta) {

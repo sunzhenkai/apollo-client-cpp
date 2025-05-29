@@ -55,7 +55,8 @@ apollo::ApolloClient client(options);
 // with local cache
 auto properties = client.GetProperties("application");
 // without local cache
-auto properties = client.GetPropertiesDirectly("application");
+apollo::Properties properties;
+auto status = client.GetPropertiesDirectly(properties, "application");
 
 // Subscribe
 client.Subscribe({{"application", "Public"}},
