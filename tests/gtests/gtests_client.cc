@@ -55,3 +55,10 @@ TEST(Client, GetFromCache) {
   auto r = client.GetPropertiesFromCache("application");
   ASSERT_GT(r.data.size(), 0);
 }
+
+TEST(Client, LongPulling) {
+  apollo::ApolloClient client(client_options);
+  client.Subscribe({{"application", "Public"}}, [](const std::string &nms, apollo::Properties &&p) {
+    spdlog::info("namespace Properties updated: {}", nms);
+  });
+}
